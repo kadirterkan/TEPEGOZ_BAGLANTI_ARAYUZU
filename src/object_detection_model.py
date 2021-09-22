@@ -17,10 +17,9 @@ class ObjectDetectionModel:
         # Modelinizi bu kısımda init edebilirsiniz.
 
         # self.model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True)
-        self.model = torch.hub.load('D:\efeet/Documents/TEKNOFEST_DATASETİ/yolov5', 'custom',
-                                    path='D:\efeet/Documents/TEKNOFEST_DATASETİ/agirlik/son(1).pt',
+        self.model = torch.hub.load('src/models/yolov5', 'custom',
+                                    path='src/models/best.pt',
                                     source='local')  # default
-        # D:\efeet/Documents/TEKNOFEST_DATASETİ/yolov5
 
     @staticmethod
     def download_image(img_url, images_folder):
@@ -53,21 +52,47 @@ class ObjectDetectionModel:
                 elif cls_no == 13:
                     return switcher.get(16)
 
-    @staticmethod
-    def object_on_field(field_values , all_values):
+    def object_on_field(self,field_values , all_values):
         for i in all_values:
-            if i[5] != "12" or i[5] != "13":
+            width = float(i[2]) - float(i[0])
+            height = float(i[1]) - float(i[3])
+            if i[5] != 12 or i[5] != 13:
                 if float(i[0]) >= float(field_values[0]) and float(i[1]) >= float(field_values[1]):
-                    if float(i[2]) <= float(field_values[2]) and float(i[3]) <= float(field_values[3]):
-                        if field_values[5] == "12":
-                            return switcher.get(12)
-                        elif field_values[5] == "13":
-                            return switcher.get(14)
+                    return self.return_classes(field_values[5],False)
+                elif float(i[2]) <= float(field_values[2]) and float(i[3]) <= float(field_values[3]):
+                    return self.return_classes(field_values[5],False)
+                elif float(i[0]) + float(width) and float(i[1]) >= float(field_values[1]):
+                    return self.return_classes(field_values[5],False)
+                elif float(i[2]) <= float(field_values[2]) and float(height) + float(field_values[3]):
+                    return self.return_classes(field_values[5],False)
 
-        if field_values[5] == "12":
-            return switcher.get(13)
-        elif field_values[5] == "13":
-            return switcher.get(16)
+        field_width = field_values[2] - field_values[0]
+        field_height = field_values[1] - field_values[3]
+
+        if field_height <= field_width:
+            if field_height / field_width >= 0.7:
+                return self.return_classes(field_values[5], True)
+            else:
+                return self.return_classes(field_values[5],False)
+        elif field_width < field_height:
+            if field_width / field_height >= 0.7:
+                return self.return_classes(field_values[5], True)
+            else:
+                return self.return_classes(field_values[5], False)
+
+
+    @staticmethod
+    def return_classes(cls_no,con):
+        if cls_no == 12:
+            if con:
+                return switcher.get(13)
+            else:
+                return switcher.get(12)
+        elif cls_no == 13:
+            if con:
+                return switcher.get(16)
+            else:
+                return switcher.get(16)
 
 
     def process(self, prediction):
@@ -83,6 +108,34 @@ class ObjectDetectionModel:
         # Tahminler objesi FramePrediction sınıfında return olarak dönülmelidir.
         return frame_results
 
+    def test_detect(self, image_name):
+        results = self.model("./_images/" + image_name, size=1280)
+
+        results.save()
+
+        print(results.pandas().xyxy[0])
+
+        for i in results.pandas().xyxy[0].to_numpy():
+            if i[5] == 12 or i[5] == 13:
+                if i[4] >= 0.4:
+                    dic = self.object_on_field(i, results.pandas().xyxy[0].to_numpy())
+                else:
+                    continue
+            else:
+                if i[5] == 2:
+                    continue
+                else:
+                    if i[5] == 14 and i[4] >= 0.4:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    elif i[5] == 5 and i[4] >= 0.4:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    elif i[5] != 14 and i[5] != 5:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    else:
+                        continue
+            print(dic)
+            print(i)
+
     def detect(self, prediction):
         image_name = prediction.image_url.split("/")[-1]  # frame_x.jpg
 
@@ -94,13 +147,23 @@ class ObjectDetectionModel:
         print(results.pandas().xyxy[0])
 
         for i in results.pandas().xyxy[0].to_numpy():
-            if i[5] != '12' or i[5] != '13':
-                if i[5] == '2':
+            if i[5] == 12 or i[5] == 13:
+                if i[4] >= 0.4:
+                    dic = self.object_on_field(i, results.pandas().xyxy[0].to_numpy())
+                else:
+                    continue
+            else:
+                if i[5] == 2:
                     continue
                 else:
-                    dic = self.convert_to_teknofest_model(int(i[5]), float(i[4]))
-            elif i[5] == "12" or i[5] == "13":
-                dic = self.object_on_field(i,results.pandas().xyxy[0].to_numpy())
+                    if i[5] == 14 and i[4] >= 0.3:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    elif i[5] == 5 and i[4] >= 0.3:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    elif i[5] != 14 and i[5] != 5:
+                        dic = self.convert_to_teknofest_model(i[5], i[4])
+                    else:
+                        continue
             print(dic)
             print(i)
             # cls = classes["UAP"],  # Tahmin edilen nesnenin sınıfı classes sözlüğü kullanılarak atanmalıdır.
@@ -120,30 +183,4 @@ class ObjectDetectionModel:
             print(d_obj)
             # Modelin tahmin ettiği her nesne prediction nesnesi içerisinde bulunan detected_objects listesine eklenmelidir.
             prediction.add_detected_object(d_obj)
-
-        # Modelinizle bu fonksiyon içerisinde tahmin yapınız.
-        # results = self.model.evaluate(...) # Örnektir.
-        # Burada örnek olması amacıyla 20 adet tahmin yapıldığı simüle edilmiştir.
-        # Yarışma esnasında modelin tahmin olarak ürettiği sonuçlar kullanılmalıdır.
-        # Örneğin :
-        # for i in results: # gibi
-        # for i in range(1, 20):
-        #     cls = classes["UAP"],  # Tahmin edilen nesnenin sınıfı classes sözlüğü kullanılarak atanmalıdır.
-        #     landing_status = landing_statuses["Inilebilir"]  # Tahmin edilen nesnenin inilebilir durumu landing_statuses sözlüğü kullanılarak atanmalıdır.
-        #     top_left_x = 12 * i  # Örnek olması için rastgele değer atanmıştır. Modelin sonuçları kullanılmalıdır.
-        #     top_left_y = 12 * i  # Örnek olması için rastgele değer atanmıştır. Modelin sonuçları kullanılmalıdır.
-        #     bottom_right_x = 12 * i  # Örnek olması için rastgele değer atanmıştır. Modelin sonuçları kullanılmalıdır.
-        #     bottom_right_y = 12 * i  # Örnek olması için rastgele değer atanmıştır. Modelin sonuçları kullanılmalıdır.
-        #
-        #     # Modelin tespit ettiği her bir nesne için bir DetectedObject sınıfına ait nesne oluşturularak
-        #     # tahmin modelinin sonuçları parametre olarak verilmelidir.
-        #     d_obj = DetectedObject(cls,
-        #                            landing_status,
-        #                            top_left_x,
-        #                            top_left_y,
-        #                            bottom_right_x,
-        #                            # bottom_right_y)
-        #     # Modelin tahmin ettiği her nesne prediction nesnesi içerisinde bulunan detected_objects listesine eklenmelidir.
-        #     prediction.add_detected_object(d_obj)
-
         return prediction

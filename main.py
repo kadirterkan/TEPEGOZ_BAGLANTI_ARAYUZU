@@ -43,14 +43,17 @@ def run(resume):
     images_folder = "./_images/"
     Path(images_folder).mkdir(parents=True, exist_ok=True)
 
+
+
     # Run object detection model frame by frame.
     for frame in frames_json:
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
         if resume:
-            with open('./src/' + server.sent_folder + server.filename,'r') as f:
+            with open(server.sent_folder + server.filename, 'r') as f:
                 filename = f.read()
-                if predictions.image_url.split("/")[-1] == filename:
+                if predictions.image_url.split("/")[-1] != filename:
+                    print(predictions.image_url.split("/")[-1])
                     continue
 
         # Run detection model
@@ -58,10 +61,18 @@ def run(resume):
         # Send model predictions of this frame to the evaluation server
         result = server.send_prediction(predictions)
 
+def test():
+    config.search_path = "./config/"
+
+    evaluation_server_url = config("EVALUATION_SERVER_URL")
+
+    detection_model = ObjectDetectionModel(evaluation_server_url)
 
 
-
-
+    for path in Path("./_images/").iterdir():
+        if path.is_file():
+            detection_model.test_detect(path.name)
+            print(path.name)
 
 
 if __name__ == '__main__':
@@ -70,3 +81,4 @@ if __name__ == '__main__':
     opt = parser.parse_args()
 
     run(opt.resume)
+    # test()
