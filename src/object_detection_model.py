@@ -37,8 +37,10 @@ class ObjectDetectionModel:
 
     @staticmethod
     def convert_to_teknofest_model(cls_no, conf):
-        if cls_no < 12 or cls_no == 15:
+        if cls_no < 12:
             return switcher.get(cls_no)
+        elif cls_no == 14:
+            return switcher.get(15)
         else:
             if conf < 0.35:
                 if cls_no == 12:
@@ -65,11 +67,7 @@ class ObjectDetectionModel:
         if field_values[5] == "12":
             return switcher.get(13)
         elif field_values[5] == "13":
-            return switcher.get(15)
-
-
-
-
+            return switcher.get(16)
 
 
     def process(self, prediction):
@@ -97,7 +95,10 @@ class ObjectDetectionModel:
 
         for i in results.pandas().xyxy[0].to_numpy():
             if i[5] != 12 or i[5] != 13:
-                dic = self.convert_to_teknofest_model(int(i[5]), float(i[4]))
+                if i[5] == '2':
+                    continue
+                else:
+                    dic = self.convert_to_teknofest_model(int(i[5]), float(i[4]))
             elif i[5] ==12 or i[5] == 13:
                 dic = self.object_on_field(i,results.pandas().xyxy[0].to_numpy())
             print(dic)

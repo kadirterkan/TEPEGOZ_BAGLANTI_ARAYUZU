@@ -48,7 +48,7 @@ def run(resume):
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
         if resume:
-            with open(server.sent_folder + server.filename,'r') as f:
+            with open('./src/' + server.sent_folder + server.filename,'r') as f:
                 filename = f.read()
                 if predictions.image_url.split("/")[-1] == filename:
                     continue
