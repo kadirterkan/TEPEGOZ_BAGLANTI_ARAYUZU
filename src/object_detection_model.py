@@ -94,12 +94,12 @@ class ObjectDetectionModel:
         print(results.pandas().xyxy[0])
 
         for i in results.pandas().xyxy[0].to_numpy():
-            if i[5] != 12 or i[5] != 13:
+            if i[5] != '12' or i[5] != '13':
                 if i[5] == '2':
                     continue
                 else:
                     dic = self.convert_to_teknofest_model(int(i[5]), float(i[4]))
-            elif i[5] ==12 or i[5] == 13:
+            elif i[5] == "12" or i[5] == "13":
                 dic = self.object_on_field(i,results.pandas().xyxy[0].to_numpy())
             print(dic)
             print(i)
