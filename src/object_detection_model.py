@@ -16,7 +16,11 @@ class ObjectDetectionModel:
         self.evaulation_server = evaluation_server_url
         # Modelinizi bu kısımda init edebilirsiniz.
 
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        # self.model = torch.hub.load('ultralytics/yolov5', 'yolov5l', pretrained=True)
+        self.model = torch.hub.load('D:\efeet/Documents/TEKNOFEST_DATASETİ/yolov5', 'custom',
+                                    path='D:\efeet/Documents/TEKNOFEST_DATASETİ/agirlik/son(1).pt',
+                                    source='local')  # default
+        # D:\efeet/Documents/TEKNOFEST_DATASETİ/yolov5
 
     @staticmethod
     def download_image(img_url, images_folder):
@@ -32,20 +36,39 @@ class ObjectDetectionModel:
         logging.info(f'{img_url} - Download Finished in {t2 - t1} seconds to {images_folder + image_name}')
 
     @staticmethod
-    def convert_to_teknofest_model(cls_no,conf):
-        if cls_no<12:
+    def convert_to_teknofest_model(cls_no, conf):
+        if cls_no < 12 or cls_no == 15:
             return switcher.get(cls_no)
         else:
-            if conf<0.5:
-                if cls_no == 11:
+            if conf < 0.35:
+                if cls_no == 12:
                     return switcher.get(12)
-                else:
+                elif cls_no == 13:
                     return switcher.get(14)
             else:
-                if cls_no == 11:
+                if cls_no == 12:
                     return switcher.get(13)
-                else:
-                    return switcher.get(15)
+                elif cls_no == 13:
+                    return switcher.get(16)
+
+    @staticmethod
+    def object_on_field(field_values , all_values):
+        for i in all_values:
+            if i[5] != "12" or i[5] != "13":
+                if float(i[0]) >= float(field_values[0]) and float(i[1]) >= float(field_values[1]):
+                    if float(i[2]) <= float(field_values[2]) and float(i[3]) <= float(field_values[3]):
+                        if field_values[5] == "12":
+                            return switcher.get(12)
+                        elif field_values[5] == "13":
+                            return switcher.get(14)
+
+        if field_values[5] == "12":
+            return switcher.get(13)
+        elif field_values[5] == "13":
+            return switcher.get(15)
+
+
+
 
 
 
@@ -65,24 +88,28 @@ class ObjectDetectionModel:
     def detect(self, prediction):
         image_name = prediction.image_url.split("/")[-1]  # frame_x.jpg
 
-        results = self.model("./_images/" + image_name)
+        results = self.model("./_images/" + image_name, size=1280)
 
-        results.print()
+        # results.print()
         results.save()
 
         print(results.pandas().xyxy[0])
 
         for i in results.pandas().xyxy[0].to_numpy():
-            dic = self.convert_to_teknofest_model(i[6],i[7])
+            if i[5] != 12 or i[5] != 13:
+                dic = self.convert_to_teknofest_model(int(i[5]), float(i[4]))
+            elif i[5] ==12 or i[5] == 13:
+                dic = self.object_on_field(i,results.pandas().xyxy[0].to_numpy())
+            print(dic)
             print(i)
             # cls = classes["UAP"],  # Tahmin edilen nesnenin sınıfı classes sözlüğü kullanılarak atanmalıdır.
             cls = dic["classes"]
             landing_status = dic["landing_statuses"]
             # landing_status = landing_statuses["Inilebilir"]  # Tahmin edilen nesnenin inilebilir durumu landing_statuses sözlüğü kullanılarak atanmalıdır
-            top_left_x = i[1]
-            top_left_y = i[2]
-            bottom_right_x = i[3]
-            bottom_right_y = i[4]
+            top_left_x = i[0]
+            top_left_y = i[1]
+            bottom_right_x = i[2]
+            bottom_right_y = i[3]
             d_obj = DetectedObject(cls,
                                    landing_status,
                                    top_left_x,
@@ -92,7 +119,6 @@ class ObjectDetectionModel:
             print(d_obj)
             # Modelin tahmin ettiği her nesne prediction nesnesi içerisinde bulunan detected_objects listesine eklenmelidir.
             prediction.add_detected_object(d_obj)
-
 
         # Modelinizle bu fonksiyon içerisinde tahmin yapınız.
         # results = self.model.evaluate(...) # Örnektir.

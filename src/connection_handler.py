@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+from pathlib import Path
+
 import requests
 
 
@@ -14,6 +17,11 @@ class ConnectionHandler:
         self.url_login = self.base_url + "auth/"
         self.url_frames = self.base_url + "frames/"
         self.url_prediction = self.base_url + "prediction/"
+
+        self.sent_folder = './_sent/'
+        Path(self.sent_folder).mkdir(parents=True, exist_ok=True)
+
+        self.filename = 'sent_values.txt'
 
         if username and password:
             self.login(username, password)
@@ -78,6 +86,10 @@ class ConnectionHandler:
         response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files, timeout=3)
         if response.status_code == 201:
             logging.info("Prediction send successfully. \n\t{}".format(payload))
+            # mode = 'a' if os.path.exists(self.sent_folder + self.filename) else 'w'
+
+            with open(self.sent_folder + self.filename, 'w') as f:
+                f.write(response.image_url.split("/")[-1])
         else:
             logging.info("Prediction send failed. \n\t{}".format(response.text))
             response_json = json.loads(response.text)

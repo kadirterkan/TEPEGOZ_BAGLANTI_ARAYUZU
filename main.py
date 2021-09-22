@@ -1,3 +1,4 @@
+import argparse
 import concurrent.futures
 import logging
 from datetime import datetime
@@ -18,7 +19,7 @@ def configure_logger(team_name):
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def run():
+def run(resume):
     print("Started...")
     # Get configurations from .env file
     config.search_path = "./config/"
@@ -46,11 +47,26 @@ def run():
     for frame in frames_json:
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
+        if resume:
+            with open(server.sent_folder + server.filename,'r') as f:
+                filename = f.read()
+                if predictions.image_url.split("/")[-1] == filename:
+                    continue
+
         # Run detection model
         predictions = detection_model.process(predictions)
         # Send model predictions of this frame to the evaluation server
         result = server.send_prediction(predictions)
 
 
+
+
+
+
+
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resume', type=bool, default=False, help='Continue from last variable')
+    opt = parser.parse_args()
+
+    run(opt.resume)
