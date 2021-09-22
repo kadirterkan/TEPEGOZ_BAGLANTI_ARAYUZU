@@ -89,7 +89,7 @@ class ConnectionHandler:
             # mode = 'a' if os.path.exists(self.sent_folder + self.filename) else 'w'
 
             with open(self.sent_folder + self.filename, 'w') as f:
-                f.write(response.image_url.split("/")[-1])
+                f.write(prediction.image_url.split("/")[-1])
         else:
             logging.info("Prediction send failed. \n\t{}".format(response.text))
             response_json = json.loads(response.text)
