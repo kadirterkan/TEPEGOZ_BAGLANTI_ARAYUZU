@@ -92,7 +92,7 @@ class ObjectDetectionModel:
             if con:
                 return switcher.get(16)
             else:
-                return switcher.get(16)
+                return switcher.get(14)
 
 
     def process(self, prediction):
