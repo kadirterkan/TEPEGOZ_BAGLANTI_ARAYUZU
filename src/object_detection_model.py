@@ -53,28 +53,35 @@ class ObjectDetectionModel:
                     return switcher.get(16)
 
     def object_on_field(self,field_values , all_values):
-        for i in all_values:
-            width = float(i[2]) - float(i[0])
-            height = float(i[1]) - float(i[3])
-            if i[5] != 12 or i[5] != 13:
-                if float(i[0]) >= float(field_values[0]) and float(i[1]) >= float(field_values[1]):
-                    return self.return_classes(field_values[5],False)
-                elif float(i[2]) <= float(field_values[2]) and float(i[3]) <= float(field_values[3]):
-                    return self.return_classes(field_values[5],False)
-                elif float(i[0]) + float(width) and float(i[1]) >= float(field_values[1]):
-                    return self.return_classes(field_values[5],False)
-                elif float(i[2]) <= float(field_values[2]) and float(height) + float(field_values[3]):
-                    return self.return_classes(field_values[5],False)
 
-        field_width = field_values[2] - field_values[0]
-        field_height = field_values[1] - field_values[3]
+        field_width = abs(field_values[2] - field_values[0])
+        field_height = abs(field_values[1] - field_values[3])
+
+        for i in all_values:
+            width = abs(float(i[2]) - float(i[0]))
+            height = abs(float(i[1]) - float(i[3]))
+            if i[5] != 12 and i[5] != 13:
+                if i[0] + width >= field_values[0] and i[0] <= field_values[0] + field_width and i[1] + height >= field_values[1] and i[1] <= field_values[1] + field_height:
+                    return self.return_classes(field_values[5],False)
+                # if float(i[0]) >= float(field_values[0]) and float(i[1]) >= float(field_values[1]):
+                #     return self.return_classes(field_values[5],False)
+                # elif float(i[2]) <= float(field_values[2]) and float(i[3]) <= float(field_values[3]):
+                #     return self.return_classes(field_values[5],False)
+                # elif float(i[0]) + float(width) and float(i[1]) >= float(field_values[1]):
+                #     return self.return_classes(field_values[5],False)
+                # elif float(i[2]) <= float(field_values[2]) and float(height) + float(field_values[3]):
+                #     return self.return_classes(field_values[5],False)
+
 
         if field_height <= field_width:
+            print(field_height / field_width)
             if field_height / field_width >= 0.7:
+                print("True")
                 return self.return_classes(field_values[5], True)
             else:
                 return self.return_classes(field_values[5],False)
         elif field_width < field_height:
+            print(field_width / field_height)
             if field_width / field_height >= 0.7:
                 return self.return_classes(field_values[5], True)
             else:

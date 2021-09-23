@@ -43,8 +43,6 @@ def run(resume):
     images_folder = "./_images/"
     Path(images_folder).mkdir(parents=True, exist_ok=True)
 
-
-
     # Run object detection model frame by frame.
     for frame in frames_json:
         # Create a prediction object to store frame info and detections
@@ -61,13 +59,13 @@ def run(resume):
         # Send model predictions of this frame to the evaluation server
         result = server.send_prediction(predictions)
 
+
 def test():
     config.search_path = "./config/"
 
     evaluation_server_url = config("EVALUATION_SERVER_URL")
 
     detection_model = ObjectDetectionModel(evaluation_server_url)
-
 
     for path in Path("./_images/").iterdir():
         if path.is_file():
@@ -80,5 +78,5 @@ if __name__ == '__main__':
     parser.add_argument('--resume', type=bool, default=False, help='Continue from last variable')
     opt = parser.parse_args()
 
-    run(opt.resume)
-    # test()
+    # run(opt.resume)
+    test()
