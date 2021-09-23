@@ -45,14 +45,25 @@ def run(resume):
 
     # Run object detection model frame by frame.
     for frame in frames_json:
+        check = False
+
+        with open(server.sent_folder + server.filename, 'r') as f:
+            data = f.read().splitlines()
+            for val in data:
+                print("val " + val)
+                print("frame" + (str(frame['image_url'].split("/")[-1])))
+                print((str(frame['image_url'].split("/"))[-1]) == val)
+                if str(frame['image_url'].split("/")[-1])== val:
+                    check = True
+                    break
+
+        if check:
+            print("Entered")
+            check = False
+            continue
+
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
-        if resume:
-            with open(server.sent_folder + server.filename, 'r') as f:
-                filename = f.read()
-                if predictions.image_url.split("/")[-1] != filename:
-                    print(predictions.image_url.split("/")[-1])
-                    continue
 
         # Run detection model
         predictions = detection_model.process(predictions)
@@ -78,5 +89,5 @@ if __name__ == '__main__':
     parser.add_argument('--resume', type=bool, default=False, help='Continue from last variable')
     opt = parser.parse_args()
 
-    # run(opt.resume)
-    test()
+    run(opt.resume)
+    # test()
