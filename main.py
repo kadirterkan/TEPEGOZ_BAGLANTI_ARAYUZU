@@ -19,7 +19,7 @@ def configure_logger(team_name):
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def run(resume):
+def run():
     print("Started...")
     # Get configurations from .env file
     config.search_path = "./config/"
@@ -75,9 +75,5 @@ def test():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--resume', type=bool, default=False, help='Continue from last variable')
-    opt = parser.parse_args()
-
-    run(opt.resume)
+    run()
     # test()
