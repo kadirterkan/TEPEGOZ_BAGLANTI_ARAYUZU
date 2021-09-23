@@ -49,18 +49,9 @@ def run(resume):
 
         with open(server.sent_folder + server.filename, 'r') as f:
             data = f.read().splitlines()
-            for val in data:
-                print("val " + val)
-                print("frame" + (str(frame['image_url'].split("/")[-1])))
-                print((str(frame['image_url'].split("/"))[-1]) == val)
-                if str(frame['image_url'].split("/")[-1])== val:
-                    check = True
-                    break
-
-        if check:
-            print("Entered")
-            check = False
-            continue
+            if str(frame['image_url'].split("/")[-1]) in data:
+                print("SKIPPING" + frame['image_url'].split("/")[-1])
+                continue
 
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
