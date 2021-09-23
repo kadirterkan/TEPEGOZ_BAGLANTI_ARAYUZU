@@ -1,5 +1,6 @@
 import argparse
 import concurrent.futures
+import json
 import logging
 import os
 from datetime import datetime
@@ -64,9 +65,11 @@ def run():
         if len(predictions.detected_objects) != 0:
             result = server.send_prediction(predictions)
 
-            while result.status_code != 201:
-                result = server.send_prediction(predictions)
-
+            if result.status_code != 201:
+                response_json = json.loads(result.text)
+                while "You do not have permission to perform this action." in response_json:
+                    result = server.send_prediction(predictions)
+                    response_json = json.loads(result.text)
 
 def test():
     config.search_path = "./config/"
