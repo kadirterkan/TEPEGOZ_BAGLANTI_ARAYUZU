@@ -48,7 +48,7 @@ def run(resume):
 
         with open(server.sent_folder + server.filename, 'r') as f:
             data = f.read().splitlines()
-            if str(frame['image_url'].split("/")[-1]) in data:
+            if str(frame['image_url'].split("/")[-1]) + "@" + str(frame['video_name']) in data:
                 print("SKIPPING" + frame['image_url'].split("/")[-1])
                 continue
 
