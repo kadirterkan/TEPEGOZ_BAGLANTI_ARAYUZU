@@ -78,5 +78,5 @@ if __name__ == '__main__':
     parser.add_argument('--resume', type=bool, default=False, help='Continue from last variable')
     opt = parser.parse_args()
 
-    # run(opt.resume)
-    test()
+    run(opt.resume)
+    # test()
