@@ -45,7 +45,6 @@ def run(resume):
 
     # Run object detection model frame by frame.
     for frame in frames_json:
-        check = False
 
         with open(server.sent_folder + server.filename, 'r') as f:
             data = f.read().splitlines()
