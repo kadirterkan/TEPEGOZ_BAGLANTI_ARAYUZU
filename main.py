@@ -54,14 +54,18 @@ def run():
                     print("SKIPPING" + frame['image_url'].split("/")[-1])
                     continue
 
-
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
 
         # Run detection model
         predictions = detection_model.process(predictions)
+
         # Send model predictions of this frame to the evaluation server
-        result = server.send_prediction(predictions)
+        if len(predictions.detected_objects) != 0:
+            result = server.send_prediction(predictions)
+
+            while result.status_code != 201:
+                result = server.send_prediction(predictions)
 
 
 def test():

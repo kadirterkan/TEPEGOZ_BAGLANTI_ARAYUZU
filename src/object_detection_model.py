@@ -147,48 +147,52 @@ class ObjectDetectionModel:
     def detect(self, prediction):
         image_name = prediction.image_url.split("/")[-1]  # frame_x.jpg
 
-        results = self.model("./_images/" + image_name, size=1280)
+        try:
+            results = self.model("./_images/" + image_name, size=1280)
 
-        # results.print()
-        results.save()
+            # results.print()
+            results.save()
 
-        print(results.pandas().xyxy[0])
+            print(results.pandas().xyxy[0])
 
-        for i in results.pandas().xyxy[0].to_numpy():
-            if i[5] == 12 or i[5] == 13:
-                if i[4] >= 0.4:
-                    dic = self.object_on_field(i, results.pandas().xyxy[0].to_numpy())
-                else:
-                    continue
-            else:
-                if i[5] == 2:
-                    continue
-                else:
-                    if i[5] == 14 and i[4] >= 0.3:
-                        dic = self.convert_to_teknofest_model(i[5], i[4])
-                    elif i[5] == 5 and i[4] >= 0.3:
-                        dic = self.convert_to_teknofest_model(i[5], i[4])
-                    elif i[5] != 14 and i[5] != 5:
-                        dic = self.convert_to_teknofest_model(i[5], i[4])
+            for i in results.pandas().xyxy[0].to_numpy():
+                if i[5] == 12 or i[5] == 13:
+                    if i[4] >= 0.4:
+                        dic = self.object_on_field(i, results.pandas().xyxy[0].to_numpy())
                     else:
                         continue
-            print(dic)
-            print(i)
-            # cls = classes["UAP"],  # Tahmin edilen nesnenin sınıfı classes sözlüğü kullanılarak atanmalıdır.
-            cls = dic["classes"]
-            landing_status = dic["landing_statuses"]
-            # landing_status = landing_statuses["Inilebilir"]  # Tahmin edilen nesnenin inilebilir durumu landing_statuses sözlüğü kullanılarak atanmalıdır
-            top_left_x = i[0]
-            top_left_y = i[1]
-            bottom_right_x = i[2]
-            bottom_right_y = i[3]
-            d_obj = DetectedObject(cls,
-                                   landing_status,
-                                   top_left_x,
-                                   top_left_y,
-                                   bottom_right_x,
-                                   bottom_right_y)
-            print(d_obj)
-            # Modelin tahmin ettiği her nesne prediction nesnesi içerisinde bulunan detected_objects listesine eklenmelidir.
-            prediction.add_detected_object(d_obj)
+                else:
+                    if i[5] == 2:
+                        continue
+                    else:
+                        if i[5] == 14 and i[4] >= 0.3:
+                            dic = self.convert_to_teknofest_model(i[5], i[4])
+                        elif i[5] == 5 and i[4] >= 0.3:
+                            dic = self.convert_to_teknofest_model(i[5], i[4])
+                        elif i[5] != 14 and i[5] != 5:
+                            dic = self.convert_to_teknofest_model(i[5], i[4])
+                        else:
+                            continue
+                print(dic)
+                print(i)
+                # cls = classes["UAP"],  # Tahmin edilen nesnenin sınıfı classes sözlüğü kullanılarak atanmalıdır.
+                cls = dic["classes"]
+                landing_status = dic["landing_statuses"]
+                # landing_status = landing_statuses["Inilebilir"]  # Tahmin edilen nesnenin inilebilir durumu
+                # landing_statuses sözlüğü kullanılarak atanmalıdır
+                top_left_x = i[0]
+                top_left_y = i[1]
+                bottom_right_x = i[2]
+                bottom_right_y = i[3]
+                d_obj = DetectedObject(cls,
+                                       landing_status,
+                                       top_left_x,
+                                       top_left_y,
+                                       bottom_right_x,
+                                       bottom_right_y)
+                print(d_obj)
+                # Modelin tahmin ettiği her nesne prediction nesnesi içerisinde bulunan detected_objects listesine eklenmelidir.
+                prediction.add_detected_object(d_obj)
+        except (AttributeError,TypeError,IOError):
+            print("Exception")
         return prediction
