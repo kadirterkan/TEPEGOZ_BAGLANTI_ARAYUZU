@@ -23,16 +23,19 @@ class ObjectDetectionModel:
 
     @staticmethod
     def download_image(img_url, images_folder):
-        t1 = time.perf_counter()
-        img_bytes = requests.get(img_url).content
-        image_name = img_url.split("/")[-1]  # frame_x.jpg
+        try:
+            t1 = time.perf_counter()
+            img_bytes = requests.get(img_url).content
+            image_name = img_url.split("/")[-1]  # frame_x.jpg
 
-        with open(images_folder + image_name, 'wb') as img_file:
-            img_file.write(img_bytes)
+            with open(images_folder + image_name, 'wb') as img_file:
+                img_file.write(img_bytes)
 
-        t2 = time.perf_counter()
+            t2 = time.perf_counter()
 
-        logging.info(f'{img_url} - Download Finished in {t2 - t1} seconds to {images_folder + image_name}')
+            logging.info(f'{img_url} - Download Finished in {t2 - t1} seconds to {images_folder + image_name}')
+        except IOError:
+            print("Exception")
 
     @staticmethod
     def convert_to_teknofest_model(cls_no, conf):

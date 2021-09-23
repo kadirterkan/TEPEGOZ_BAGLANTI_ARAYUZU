@@ -1,6 +1,7 @@
 import argparse
 import concurrent.futures
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -46,11 +47,13 @@ def run():
     # Run object detection model frame by frame.
     for frame in frames_json:
 
-        with open(server.sent_folder + server.filename, 'r') as f:
-            data = f.read().splitlines()
-            if str(frame['image_url'].split("/")[-1]) + "@" + str(frame['video_name']) in data:
-                print("SKIPPING" + frame['image_url'].split("/")[-1])
-                continue
+        if os.path.isfile(server.sent_folder + server.filename):
+            with open(server.sent_folder + server.filename, 'r') as f:
+                data = f.read().splitlines()
+                if str(frame['image_url'].split("/")[-1]) + "@" + str(frame['video_name']) in data:
+                    print("SKIPPING" + frame['image_url'].split("/")[-1])
+                    continue
+
 
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
