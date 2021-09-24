@@ -62,10 +62,6 @@ def run():
         predictions = detection_model.process(predictions)
         
         mode = 'a' if os.path.exists(server.sent_folder + server.filename) else 'w'
-        with open(self.sent_folder + self.filename, mode) as f:
-            f.write(prediction.image_url.split("/")[-1] + "@" + prediction.video_name + '\n')
-
-        mode = 'a' if os.path.exists(server.sent_folder + server.filename) else 'w'
         with open(server.sent_folder + server.filename, mode) as f:
             f.write(predictions.image_url.split("/")[-1] + "@" + predictions.video_name + '\n')
 
